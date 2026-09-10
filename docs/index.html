@@ -150,6 +150,8 @@ body {
   font-weight: 800;
 }
 
+/* BUTTON */
+
 .mow-button {
   position: relative;
   width: 100%;
@@ -163,15 +165,22 @@ body {
   font-weight: 850;
   cursor: pointer;
   overflow: visible;
-  transition: transform .12s ease;
+  transition: transform .12s ease, opacity .2s ease;
 }
 
-.mow-button:active {
+.mow-button:active:not(:disabled) {
   transform: scale(.97);
+}
+
+.mow-button:disabled {
+  opacity: .58;
+  cursor: default;
+  transform: none;
 }
 
 .undo {
   display: none;
+  width: 100%;
   text-align: center;
   margin-top: 13px;
   border: 0;
@@ -223,36 +232,51 @@ body {
   <div class="brand">Mow</div>
 
   <section class="card hero">
-    <div class="eyebrow" id="heroDay">Today · Thursday</div>
 
-    <div class="score" id="mainScore">6.4</div>
+    <div class="eyebrow" id="heroDay">
+      Today
+    </div>
+
+    <div class="score" id="mainScore">
+      6.4
+    </div>
 
     <div class="best-window" id="bestWindow">
       Best conditions 5–7:30 PM
     </div>
+
   </section>
 
 
   <section class="card">
-    <div class="eyebrow">This Week</div>
+
+    <div class="eyebrow">
+      This Week
+    </div>
 
     <div class="week-grid" id="week"></div>
+
   </section>
 
 
   <section class="card">
-    <div class="eyebrow">Your Lawn</div>
+
+    <div class="eyebrow">
+      Your Lawn
+    </div>
 
     <div class="last-mowed" id="lastMowed">
       Last mowed 8 days ago
     </div>
 
-    <div class="lawn-meter" id="lawnMeter">
+    <div class="lawn-meter">
+
       <div class="blade active"></div>
       <div class="blade active"></div>
       <div class="blade active"></div>
       <div class="blade active"></div>
       <div class="blade"></div>
+
     </div>
 
     <div class="lawn-status" id="lawnStatus">
@@ -266,147 +290,241 @@ body {
     <button class="undo" id="undoButton">
       Undo
     </button>
+
   </section>
 
 </main>
 
+
 <script>
 
-/* --------------------------
+/* ========================================
    TEMPORARY FORECAST DATA
---------------------------- */
 
-const forecast = [
+   Dates/day names are generated automatically
+   from the user's current local date.
+======================================== */
+
+const forecastData = [
   {
-    day: "THU",
-    title: "Today · Thursday",
     score: 6.4,
     window: "Best conditions 5–7:30 PM"
   },
   {
-    day: "FRI",
-    title: "Friday",
     score: 9.4,
     window: "Best conditions 4:45–7:20 PM"
   },
   {
-    day: "SAT",
-    title: "Saturday",
     score: 8.8,
     window: "Best conditions 10 AM–1 PM"
   },
   {
-    day: "SUN",
-    title: "Sunday",
     score: 7.1,
     window: "Best conditions 2–5 PM"
   },
   {
-    day: "MON",
-    title: "Monday",
     score: 5.6,
     window: "Best conditions 11 AM–1 PM"
   }
 ];
 
 
-/* --------------------------
-   SCORE COLOR
-   red → yellow → green
---------------------------- */
+/* ========================================
+   DATE HELPERS
+======================================== */
+
+function getForecastDate(index) {
+
+  const date = new Date();
+
+  date.setHours(12, 0, 0, 0);
+
+  date.setDate(
+    date.getDate() + index
+  );
+
+  return date;
+}
+
+
+function getShortDay(index) {
+
+  return getForecastDate(index)
+    .toLocaleDateString(undefined, {
+      weekday: "short"
+    })
+    .toUpperCase();
+}
+
+
+function getLongDay(index) {
+
+  const weekday =
+    getForecastDate(index)
+      .toLocaleDateString(undefined, {
+        weekday: "long"
+      });
+
+  if (index === 0) {
+
+    return `Today · ${weekday}`;
+
+  }
+
+  if (index === 1) {
+
+    return `Tomorrow · ${weekday}`;
+
+  }
+
+  return weekday;
+}
+
+
+/* ========================================
+   SCORE COLORS
+
+   Continuous:
+   red → orange → yellow → green
+======================================== */
 
 function scoreColor(score) {
 
   const normalized =
     Math.max(0, Math.min(10, score)) / 10;
 
-  const hue = normalized * 120;
+  const hue =
+    normalized * 120;
 
-  return `hsl(${hue}, 65%, 43%)`;
+  return `hsl(${hue}, 66%, 40%)`;
 }
+
 
 function scoreBackground(score) {
 
   const normalized =
     Math.max(0, Math.min(10, score)) / 10;
 
-  const hue = normalized * 120;
+  const hue =
+    normalized * 120;
 
   return `hsl(${hue}, 58%, 78%)`;
 }
 
 
-/* --------------------------
-   WEEK
---------------------------- */
+/* ========================================
+   WEEKLY FORECAST
+======================================== */
 
-const week = document.getElementById("week");
+const week =
+  document.getElementById("week");
 
-forecast.forEach((item, index) => {
+const mainScore =
+  document.getElementById("mainScore");
 
-  const button = document.createElement("button");
+const heroDay =
+  document.getElementById("heroDay");
+
+const bestWindow =
+  document.getElementById("bestWindow");
+
+
+forecastData.forEach((item, index) => {
+
+  const button =
+    document.createElement("button");
 
   button.className =
-    "day" + (index === 0 ? " selected" : "");
+    "day" +
+    (index === 0 ? " selected" : "");
 
   button.innerHTML = `
-    <div class="day-name">${item.day}</div>
+
+    <div class="day-name">
+      ${getShortDay(index)}
+    </div>
 
     <div
       class="day-score"
-      style="background:${scoreBackground(item.score)}"
+      style="
+        background:
+        ${scoreBackground(item.score)}
+      "
     >
       ${item.score.toFixed(1)}
     </div>
+
   `;
 
-  button.addEventListener("click", () => {
-
-    document
-      .querySelectorAll(".day")
-      .forEach(day => day.classList.remove("selected"));
-
-    button.classList.add("selected");
-
-    showDay(item);
-  });
+  button.addEventListener(
+    "click",
+    () => selectDay(index, button)
+  );
 
   week.appendChild(button);
+
 });
 
 
-function showDay(item) {
+function selectDay(index, button) {
 
-  const score = document.getElementById("mainScore");
+  document
+    .querySelectorAll(".day")
+    .forEach(day => {
 
-  document.getElementById("heroDay").textContent =
-    item.title;
+      day.classList.remove("selected");
 
-  document.getElementById("bestWindow").textContent =
+    });
+
+  button.classList.add("selected");
+
+  showDay(index);
+}
+
+
+function showDay(index) {
+
+  const item =
+    forecastData[index];
+
+  heroDay.textContent =
+    getLongDay(index);
+
+  bestWindow.textContent =
     item.window;
 
-  score.style.transform = "scale(.92)";
+  mainScore.style.transform =
+    "scale(.92)";
 
   setTimeout(() => {
 
-    score.textContent = item.score.toFixed(1);
+    mainScore.textContent =
+      item.score.toFixed(1);
 
-    score.style.color =
+    mainScore.style.color =
       scoreColor(item.score);
 
-    score.style.transform = "scale(1)";
+    mainScore.style.transform =
+      "scale(1)";
 
   }, 100);
 }
 
 
-/* --------------------------
+/* ========================================
    LAWN TRACKER
---------------------------- */
+======================================== */
 
-const STORAGE_KEY = "mow-last-mowed";
+const STORAGE_KEY =
+  "mow-last-mowed";
+
+const INITIAL_FAKE_DAYS_SINCE_MOW =
+  8;
 
 let previousMowDate = null;
+
+let undoTimer = null;
+
 
 const lastMowed =
   document.getElementById("lastMowed");
@@ -433,38 +551,76 @@ function setMeter(level) {
       );
 
     });
+
 }
 
+
+/* ========================================
+   CHECK WHETHER DATE IS TODAY
+======================================== */
+
+function isToday(date) {
+
+  const now =
+    new Date();
+
+  return (
+    date.getFullYear() ===
+      now.getFullYear() &&
+
+    date.getMonth() ===
+      now.getMonth() &&
+
+    date.getDate() ===
+      now.getDate()
+  );
+}
+
+
+/* ========================================
+   UPDATE LAWN DISPLAY
+======================================== */
 
 function updateLawn() {
 
   const saved =
     localStorage.getItem(STORAGE_KEY);
 
+  /*
+    Prototype default:
+    if there's no mowing history yet,
+    pretend it was 8 days ago.
+  */
+
   if (!saved) {
 
     lastMowed.textContent =
-      "Last mowed 8 days ago";
+      `Last mowed ${INITIAL_FAKE_DAYS_SINCE_MOW} days ago`;
 
     setMeter(4);
 
     lawnStatus.textContent =
       "Getting long";
 
+    mowButton.disabled = false;
+
+    mowButton.textContent =
+      "I Mowed";
+
     return;
   }
 
-  const mowDate = new Date(saved);
 
-  const now = new Date();
+  const mowDate =
+    new Date(saved);
 
-  const days =
-    Math.floor(
-      (now - mowDate) /
-      (1000 * 60 * 60 * 24)
-    );
 
-  if (days <= 0) {
+  /*
+    If user already logged a mow today,
+    the button stays disabled.
+  */
+
+  if (isToday(mowDate)) {
 
     lastMowed.textContent =
       "Mowed today";
@@ -474,146 +630,346 @@ function updateLawn() {
     lawnStatus.textContent =
       "Not yet";
 
-  } else {
+    mowButton.textContent =
+      "✓ Mowed";
 
-    lastMowed.textContent =
-      `Last mowed ${days} day${days === 1 ? "" : "s"} ago`;
+    mowButton.disabled =
+      true;
 
-    if (days <= 3) {
-
-      setMeter(1);
-      lawnStatus.textContent = "Not yet";
-
-    } else if (days <= 6) {
-
-      setMeter(2);
-      lawnStatus.textContent = "Getting there";
-
-    } else if (days <= 9) {
-
-      setMeter(4);
-      lawnStatus.textContent = "Getting long";
-
-    } else {
-
-      setMeter(5);
-      lawnStatus.textContent = "Likely long";
-    }
+    return;
   }
+
+
+  const now =
+    new Date();
+
+
+  /*
+    Use calendar dates rather than exact
+    elapsed hours.
+
+    Example:
+    Yesterday at 11 PM still counts as
+    "1 day ago" after midnight.
+  */
+
+  const todayMidnight =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+  const mowMidnight =
+    new Date(
+      mowDate.getFullYear(),
+      mowDate.getMonth(),
+      mowDate.getDate()
+    );
+
+
+  const days =
+    Math.round(
+      (todayMidnight - mowMidnight) /
+      86400000
+    );
+
+
+  lastMowed.textContent =
+    `Last mowed ${days} day${days === 1 ? "" : "s"} ago`;
+
+
+  /*
+    Temporary prototype growth logic.
+
+    Later this will be replaced by the
+    real Lawn Tracker growth model.
+  */
+
+  if (days <= 3) {
+
+    setMeter(1);
+
+    lawnStatus.textContent =
+      "Not yet";
+
+  }
+
+  else if (days <= 6) {
+
+    setMeter(2);
+
+    lawnStatus.textContent =
+      "Getting there";
+
+  }
+
+  else if (days <= 9) {
+
+    setMeter(4);
+
+    lawnStatus.textContent =
+      "Getting long";
+
+  }
+
+  else {
+
+    setMeter(5);
+
+    lawnStatus.textContent =
+      "Likely long";
+
+  }
+
+
+  /*
+    New day = user can log another mow.
+  */
+
+  mowButton.disabled =
+    false;
+
+  mowButton.textContent =
+    "I Mowed";
+
 }
 
 
-/* --------------------------
+/* ========================================
    I MOWED
---------------------------- */
+======================================== */
 
-mowButton.addEventListener("click", () => {
+mowButton.addEventListener(
+  "click",
+  () => {
 
-  previousMowDate =
-    localStorage.getItem(STORAGE_KEY);
+    /*
+      Don't allow repeated clicks.
+    */
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    new Date().toISOString()
-  );
-
-  mowButton.textContent = "✓ Mowed!";
-
-  updateLawn();
-
-  grassConfetti();
-
-  undoButton.style.display = "block";
-
-  setTimeout(() => {
-
-    mowButton.textContent = "I Mowed";
-
-  }, 1800);
-
-});
+    if (mowButton.disabled) {
+      return;
+    }
 
 
-undoButton.addEventListener("click", () => {
+    previousMowDate =
+      localStorage.getItem(
+        STORAGE_KEY
+      );
 
-  if (previousMowDate) {
 
     localStorage.setItem(
       STORAGE_KEY,
-      previousMowDate
+      new Date().toISOString()
     );
 
-  } else {
 
-    localStorage.removeItem(
-      STORAGE_KEY
-    );
+    mowButton.disabled =
+      true;
+
+    mowButton.textContent =
+      "✓ Mowed";
+
+
+    updateLawn();
+
+    grassConfetti();
+
+
+    /*
+      Undo stays available for 10 seconds.
+    */
+
+    undoButton.style.display =
+      "block";
+
+
+    if (undoTimer) {
+
+      clearTimeout(
+        undoTimer
+      );
+
+    }
+
+
+    undoTimer =
+      setTimeout(() => {
+
+        undoButton.style.display =
+          "none";
+
+        previousMowDate =
+          null;
+
+      }, 10000);
+
   }
-
-  updateLawn();
-
-  undoButton.style.display = "none";
-});
+);
 
 
-/* --------------------------
+/* ========================================
+   UNDO
+======================================== */
+
+undoButton.addEventListener(
+  "click",
+  () => {
+
+    if (undoTimer) {
+
+      clearTimeout(
+        undoTimer
+      );
+
+      undoTimer = null;
+    }
+
+
+    if (previousMowDate) {
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        previousMowDate
+      );
+
+    }
+
+    else {
+
+      localStorage.removeItem(
+        STORAGE_KEY
+      );
+
+    }
+
+
+    previousMowDate =
+      null;
+
+
+    undoButton.style.display =
+      "none";
+
+
+    updateLawn();
+
+  }
+);
+
+
+/* ========================================
    GRASS CONFETTI
---------------------------- */
+======================================== */
 
 function grassConfetti() {
 
   const rect =
     mowButton.getBoundingClientRect();
 
+
   const startX =
-    rect.left + rect.width / 2;
+    rect.left +
+    rect.width / 2;
+
 
   const startY =
-    rect.top + rect.height / 2;
+    rect.top +
+    rect.height / 2;
 
-  for (let i = 0; i < 35; i++) {
+
+  for (
+    let i = 0;
+    i < 40;
+    i++
+  ) {
 
     const grass =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
-    grass.className = "confetti";
+
+    grass.className =
+      "confetti";
+
 
     grass.style.left =
       `${startX}px`;
 
+
     grass.style.top =
       `${startY}px`;
 
+
     grass.style.setProperty(
       "--x",
-      `${(Math.random() - .5) * 320}px`
+      `${(Math.random() - .5) * 330}px`
     );
+
 
     grass.style.setProperty(
       "--y",
-      `${-80 - Math.random() * 230}px`
+      `${-80 - Math.random() * 240}px`
     );
+
 
     grass.style.setProperty(
       "--r",
       `${Math.random() * 600 - 300}deg`
     );
 
-    document.body.appendChild(grass);
+
+    document.body.appendChild(
+      grass
+    );
+
 
     setTimeout(
       () => grass.remove(),
       1000
     );
+
   }
+
 }
 
 
-/* --------------------------
-   INITIAL STATE
---------------------------- */
+/* ========================================
+   MIDNIGHT CHECK
 
-showDay(forecast[0]);
+   If the app stays open overnight,
+   refresh the date labels and lawn state.
+======================================== */
+
+let currentDateKey =
+  new Date().toDateString();
+
+
+setInterval(() => {
+
+  const newDateKey =
+    new Date().toDateString();
+
+
+  if (
+    newDateKey !==
+    currentDateKey
+  ) {
+
+    location.reload();
+
+  }
+
+}, 60000);
+
+
+/* ========================================
+   INITIAL STATE
+======================================== */
+
+showDay(0);
 
 updateLawn();
 
