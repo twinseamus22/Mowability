@@ -3,11 +3,210 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
   <title>Mow</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f5f2;
+      color: #111;
+    }
+
+    .app {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 24px 18px 40px;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .score-card {
+      background: white;
+      border-radius: 28px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.06);
+      margin-bottom: 18px;
+    }
+
+    .score {
+      font-size: 92px;
+      font-weight: 800;
+      line-height: .95;
+      margin: 8px 0 10px;
+    }
+
+    .score.good {
+      color: #2f9e44;
+    }
+
+    .best-window {
+      font-size: 20px;
+      font-weight: 650;
+      margin-top: 18px;
+    }
+
+    .week {
+      background: white;
+      border-radius: 24px;
+      padding: 20px 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.05);
+      margin-bottom: 18px;
+    }
+
+    .week-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .day {
+      text-align: center;
+    }
+
+    .day-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #777;
+      margin-bottom: 8px;
+    }
+
+    .day-score {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .lawn-card {
+      background: white;
+      border-radius: 24px;
+      padding: 22px 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.05);
+    }
+
+    .last-mowed {
+      font-size: 18px;
+      font-weight: 650;
+      margin-top: 8px;
+    }
+
+    .growth {
+      margin-top: 18px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .growth-icons {
+      font-size: 23px;
+      margin-bottom: 4px;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 20px;
+      font-size: 17px;
+      font-weight: 750;
+      background: #111;
+      color: white;
+      cursor: pointer;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #777;
+      margin-top: 12px;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Mow</h1>
-  <p>The app is running.</p>
+  <main class="app">
+
+    <section class="score-card">
+      <div class="eyebrow">Mow Score</div>
+      <div class="score good">9.4</div>
+      <div class="best-window">Best conditions 5–7:30 PM</div>
+    </section>
+
+    <section class="week">
+      <div class="eyebrow">This Week</div>
+
+      <div class="week-grid">
+        <div class="day">
+          <div class="day-name">THU</div>
+          <div class="day-score" style="background:#d7e98b;">6.4</div>
+        </div>
+
+        <div class="day">
+          <div class="day-name">FRI</div>
+          <div class="day-score" style="background:#5fcf65;">9.4</div>
+        </div>
+
+        <div class="day">
+          <div class="day-name">SAT</div>
+          <div class="day-score" style="background:#7bd66d;">8.8</div>
+        </div>
+
+        <div class="day">
+          <div class="day-name">SUN</div>
+          <div class="day-score" style="background:#b9db74;">7.1</div>
+        </div>
+
+        <div class="day">
+          <div class="day-name">MON</div>
+          <div class="day-score" style="background:#e5c76b;">5.6</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lawn-card">
+      <div class="eyebrow">Your Lawn</div>
+
+      <div class="last-mowed">
+        Last mowed 8 days ago
+      </div>
+
+      <div class="growth">
+        <div class="growth-icons">🌱 🌱 🌱 🌱 ○</div>
+        Getting long
+      </div>
+
+      <button onclick="recordMow()">I Mowed</button>
+
+      <div class="note" id="mow-note"></div>
+    </section>
+
+  </main>
+
+  <script>
+    function recordMow() {
+      const note = document.getElementById("mow-note");
+      note.textContent = "Recorded as mowed today.";
+    }
+  </script>
 </body>
 </html>
